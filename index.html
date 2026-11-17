@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Next Task · Planificador académico</title><meta name="description" content="Next Task: horario, materias, tareas y calendario en un solo lugar. Demo local sin servidor."><meta name="theme-color" content="#0a0a0a">
+<style>
+:root{--bg:#fff;--bg2:#f4f4f5;--fg:#0a0a0a;--mut:#6b7280;--bd:#e4e4e7;--bad:#b91c1c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0a0a0a;--bg2:#18181b;--fg:#fafafa;--mut:#a1a1aa;--bd:#27272a;--bad:#f87171}}
+:root[data-theme=dark]{--bg:#0a0a0a;--bg2:#18181b;--fg:#fafafa;--mut:#a1a1aa;--bd:#27272a;--bad:#f87171}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Inter","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;letter-spacing:-.02em}h2{font-size:22px}h3{font-size:16px}
+.mut{color:var(--mut);font-size:13px}.b{font-weight:600}
+.btn,.btn2{border:1px solid var(--fg);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:6px;cursor:pointer;transition:opacity .15s}
+.btn2{background:transparent;color:var(--fg);border-color:var(--bd)}.btn:hover,.btn2:hover{opacity:.8}.sm{padding:4px 10px;font-size:13px}
+.lnk{background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;color:var(--mut)}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);margin-top:4px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:12px}.lb{font-size:13px;color:var(--mut);margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row.end{justify-content:flex-end;margin-top:12px}.sp{flex:1}
+.card{border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.box{width:100%;max-width:440px}.box.w{max-width:560px}
+.mark{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;margin-bottom:28px}
+.big{font-size:44px;font-weight:700;letter-spacing:-.04em;line-height:1.05;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;padding:18px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);cursor:pointer;margin-bottom:10px;transition:border-color .15s}
+.opt:hover{border-color:var(--fg)}
+.ms{border:0;border-bottom:1px solid var(--fg);border-radius:0;padding:8px 0;font-size:16px}
+.err{color:var(--bad);font-size:13px;min-height:20px;margin-top:6px}
+.note{background:var(--bg2);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--mut);margin-top:16px}
+.prog{display:flex;gap:6px;margin-bottom:20px}.prog i{flex:1;height:3px;background:var(--bd);border-radius:2px}.prog i.on{background:var(--fg)}
+.pl{max-height:260px;overflow:auto;border:1px solid var(--bd);border-radius:6px}
+.pi{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--bd);cursor:pointer;font-size:14px}.pi:last-child{border:0}.pi.sel{background:var(--fg);color:var(--bg)}.pi.sel .mut{color:inherit;opacity:.7}
+.app{display:flex;min-height:100vh}
+nav.sb{width:220px;border-right:1px solid var(--bd);padding:20px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px}
+nav button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;gap:10px;align-items:center;color:var(--mut)}
+nav button.on{background:var(--bg2);color:var(--fg);font-weight:600}nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+main{flex:1;min-width:0;padding:28px 32px 40px;max-width:1000px;animation:in .2s}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.ban{background:var(--fg);color:var(--bg);font-size:13px;padding:8px 12px;border-radius:6px;margin-bottom:16px}
+.tag{display:inline-block;border:1px solid var(--bd);border-radius:4px;padding:1px 7px;font-size:12px;color:var(--mut);margin:2px 4px 2px 0}
+.tag.p3{background:var(--fg);color:var(--bg);border-color:var(--fg)}.tag.p2{border-color:var(--fg);color:var(--fg)}.tag.bad{color:var(--bad);border-color:var(--bad)}
+.tk{display:flex;gap:12px;align-items:flex-start}.tk input[type=checkbox]{width:18px;height:18px;margin:3px 0 0;accent-color:var(--fg)}
+.done .tt{text-decoration:line-through;color:var(--mut)}
+.sub{margin:6px 0 0 30px;font-size:14px}.sub label{display:flex;gap:8px;margin:2px 0;color:inherit;font-size:14px}.sub input{width:auto;margin:3px 0 0}
+.gw{overflow-x:auto;border:1px solid var(--bd);border-radius:8px}.gr{display:flex;min-width:640px}
+.tc{width:46px;flex:none;font-size:11px;color:var(--mut)}.tc div{height:40px;padding:2px 4px;border-top:1px solid var(--bd)}
+.gh{flex:1;text-align:center;font-size:13px;font-weight:600;padding:8px 0;border-left:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.dc{flex:1;position:relative;border-left:1px solid var(--bd);background:repeating-linear-gradient(var(--bd) 0 1px,transparent 1px 40px)}
+.blk{position:absolute;border-radius:5px;color:#fff;font-size:11px;line-height:1.25;padding:3px 5px;overflow:hidden;cursor:pointer;border:0;text-align:left}.blk.cf{outline:2px solid var(--bad);outline-offset:-2px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.cal>div{background:var(--bg);min-height:60px;padding:4px 6px;font-size:12px;cursor:pointer}.cal .h{min-height:0;text-align:center;color:var(--mut);cursor:default}.cal .o{color:var(--mut);opacity:.5}.cal .t{font-weight:700;background:var(--bg2)}.cal .s{outline:2px solid var(--fg);outline-offset:-2px}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--fg);margin:1px 1px 0 0}.dot.a{background:var(--bad)}.dot.c{background:var(--mut)}
+.bar{height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--fg)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}.stats .card{margin:0}.stats b{font-size:26px;display:block}
+.filt{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px}.filt *{margin:0}
+dialog{border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--fg);width:min(480px,94vw);max-height:92vh;padding:20px}dialog::backdrop{background:#0008}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.chk{display:flex;gap:6px;align-items:center;border:1px solid var(--bd);border-radius:6px;padding:5px 9px;margin:0;color:var(--fg);cursor:pointer}.chk input{width:auto;margin:0}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}#toast.on{opacity:1}
+@media(max-width:760px){nav.sb{position:fixed;bottom:0;left:0;right:0;width:auto;height:auto;flex-direction:row;border:0;border-top:1px solid var(--bd);background:var(--bg);padding:4px;z-index:5;justify-content:space-around}
+nav button{flex-direction:column;gap:2px;font-size:10px;padding:6px 2px;text-align:center}nav .lg{display:none}main{padding:18px 14px 90px}.big{font-size:34px}.filt{grid-template-columns:1fr 1fr}.filt input{grid-column:1/3}}
+.lgbg{background:#232323;position:relative;overflow:hidden}.lgbg:before{content:"";position:absolute;left:-180px;top:12%;width:420px;height:420px;border-radius:50%;background:#7a3410}.lgbg:after{content:"";position:absolute;left:30%;top:-130px;width:360px;height:210px;border-radius:50%;background:#a24512;opacity:.8}
+.lgc{--bg:#fff;--fg:#0a0a0a;--mut:#5f6368;--bd:#d4d4d8;--bg2:#f2f2f2;color:#0a0a0a;position:relative;z-index:1}.lgcard{background:#fff;padding:44px 44px 0}.lgf{background:#f2f2f2;margin:32px -44px 0;padding:22px 44px;font-size:13px;color:#444}
+.lgo{display:flex;gap:10px;align-items:center;width:100%;background:#fff;border:0;padding:14px 20px;margin-top:22px;cursor:pointer;color:#0a0a0a}.lgo:hover{background:#f2f2f2}
+.tb{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:8;display:flex;gap:6px}.tb .btn2{background:var(--bg)}main{padding-top:56px!important}
+</style></head><body><div id="app"></div><noscript>Next Task necesita JavaScript activado. / Next Task needs JavaScript.</noscript><dialog id="dlg"></dialog><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DAYS=['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],COL=['#1f2937','#7c2d12','#14532d','#1e3a8a','#581c87','#713f12','#0f766e','#9f1239'],D6=[1,2,3,4,5,6];
+const LOC=()=>ui.lang=='en'?'en-US':'es-'+'CO';
+const iso=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const tm=s=>{const[a,b]=s.split(':');return+a*60+ +b},hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const fd=d=>new Date(d).toLocaleString(LOC(),{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const fday=d=>new Date(d+'T00:00').toLocaleDateString(LOC(),{weekday:'long',day:'numeric',month:'long'});
+// ---- Almacenamiento local ----
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('No se pudo guardar en el navegador');return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const KS='nt:v1:session',KD='nt:v1:demo',KU=e=>'nt:v1:user:'+e;
+let sess=ls.get(KS,null),S=null,view='inicio',scr='welcome',step=0,calM=new Date(),calSel=iso(new Date()),tf={q:'',st:'',sid:'',sort:'prio'},pf={q:'',lv:'',md:''};
+const key=()=>sess.mode=='guest'?KD:KU(sess.email),save=()=>ls.set(key(),S),blank=()=>({profile:{},subjects:[],classes:[],tasks:[],events:[],prefs:{theme:'auto'},dismissed:[]});
+let ui=ls.get('nt:v1:ui',{theme:'auto',lang:'es'});const sui=()=>ls.set('nt:v1:ui',ui);
+const EN=Object.fromEntries(`Tu vida académica, mejor organizada.=Your academic life, better organized.
+Horario, materias y entregas en un solo lugar. Para la comunidad Unicompensar.=Schedule, subjects and deadlines in one place. For the Unicompensar community.
+Entrar como invitado=Continue as guest
+Explora una demostración con datos de ejemplo. No pide correo.=Explore a demo with sample data. No email required.
+Iniciar sesión con correo institucional=Sign in with institutional email
+Usa tu correo @ucompensar.edu.co. Acceso de demostración.=Use your @ucompensar.edu.co email. Demo access.
+Demo local: todo se guarda solo en este navegador. No hay servidores ni cuentas reales.=Local demo: everything is saved only in this browser. No servers or real accounts.
+Hecha para la comunidad Unicompensar=Made for the Unicompensar community
+Iniciar sesión=Sign in
+¿No puede acceder a su cuenta?=Can't access your account?
+Volver=Back
+Siguiente=Next
+Acceso de demostración: solo se comprueba que el correo termine en @ucompensar.edu.co. No se verifica tu identidad institucional ni se pide contraseña.=Demo access: only the @ucompensar.edu.co ending is checked. Your institutional identity is not verified and no password is requested.
+Información básica=Basic information
+Solo lo necesario.=Only what is needed.
+Nombre para mostrar=Display name
+Edad (opcional)=Age (optional)
+Correo institucional=Institutional email
+Programa académico=Academic program
+Semestre y periodo=Semester and term
+Semestre que cursas=Current semester
+Periodo académico actual=Current academic term
+Tu horario=Your schedule
+Añade tus clases. Puedes omitir esto y hacerlo luego.=Add your classes. You can skip this and do it later.
+Añadir clase=Add class
+Atrás=Back
+Continuar=Continue
+Finalizar=Finish
+Editar clase=Edit class
+Cancelar=Cancel
+Guardar=Save
+Asignatura=Subject
+Profesor (opcional)=Teacher (optional)
+Días=Days
+Hora de inicio=Start time
+Hora de fin=End time
+Salón, sede o enlace (opcional)=Room, campus or link (optional)
+Créditos (opcional)=Credits (optional)
+Notas (opcional)=Notes (optional)
+Notas personales=Personal notes
+Inicio=Home
+Mi horario=My schedule
+Horario=Schedule
+Materias=Subjects
+Tareas=Tasks
+Calendario=Calendar
+Estadísticas=Statistics
+Perfil=Profile
+Perfil y ajustes=Profile and settings
+Clases=Classes
+Editar=Edit
+Eliminar=Delete
+Confirmar=Confirm
+Nueva materia=New subject
+Editar materia=Edit subject
+Nombre=Name
+Nueva tarea=New task
+Editar tarea=Edit task
+Título=Title
+Descripción=Description
+Materia=Subject
+Entrega=Due
+Urgencia=Urgency
+Importancia=Importance
+Baja=Low
+Media=Medium
+Alta=High
+Estado=Status
+Pendiente=Pending
+En progreso=In progress
+Completada=Completed
+Subtareas (una por línea)=Subtasks (one per line)
+Tiempo estimado (horas)=Estimated time (hours)
+Nuevo evento=New event
+Editar evento=Edit event
+Tipo=Type
+Fecha=Date
+Examen=Exam
+Presentación=Presentation
+Bloque de estudio=Study block
+Evento personal=Personal event
+Inicio (opcional)=Start (optional)
+Fin (opcional)=End (optional)
+Hoy=Today
+Clases de hoy=Today's classes
+Tareas por prioridad=Tasks by priority
+clases hoy=classes today
+tareas pendientes=pending tasks
+trabajo pendiente=pending work
+Planificador de estudio=Study planner
+Aceptar=Accept
+Modificar=Modify
+Descartar=Dismiss
+Urgente=Urgent
+Alta prioridad=High priority
+Prioridad normal=Normal priority
+Baja prioridad=Low priority
+Vencida=Overdue
+Vence en menos de 24 h=Due in under 24 h
+Vence en menos de 3 días=Due in under 3 days
+Vence esta semana=Due this week
+Urgencia alta=High urgency
+Urgencia media=Medium urgency
+Importancia alta=High importance
+Importancia media=Medium importance
+Más de la mitad avanzada=More than half done
+Sin factores de urgencia=No urgency factors
+Tareas por materia=Tasks per subject
+Completadas por semana=Completed per week
+completadas=completed
+pendientes=pending
+vencidas=overdue
+cumplimiento=completion
+Tema=Theme
+Idioma=Language
+Automático=Automatic
+Claro=Light
+Oscuro=Dark
+Datos locales=Local data
+Reiniciar demo=Reset demo
+Borrar datos guardados=Delete saved data
+Cerrar sesión=Sign out
+Editar perfil y programa=Edit profile and program
+Buscar por nombre…=Search by name…
+Buscar…=Search…
+Nivel: todos=Level: all
+Modalidad: todas=Mode: all
+Estado: todos=Status: all
+Materia: todas=Subject: all
+Orden: prioridad=Sort: priority
+Fecha de entrega=Due date
+Urgencia=Urgency
+Sin resultados.=No results.
+Sin horarios.=No schedules.
+No tienes clases hoy.=No classes today.
+Sin eventos este día.=No events this day.
+Aún no hay clases. Pulsa «Añadir clase».=No classes yet. Press "Add class".
+Aún no tienes tareas. Crea la primera con «Nueva tarea».=No tasks yet. Create the first with "New task".
+Sin tareas pendientes. Crea una para empezar.=No pending tasks. Create one to start.
+Tu horario está vacío. Añade tu primera clase.=Your schedule is empty. Add your first class.
+Presencial=In person
+Lunes=Monday
+Martes=Tuesday
+Miércoles=Wednesday
+Jueves=Thursday
+Viernes=Friday
+Sábado=Saturday
+Lun=Mon
+Mar=Tue
+Mié=Wed
+Jue=Thu
+Vie=Fri
+Sáb=Sat
+Demostración con datos ficticios de ejemplo. No se mezclan con tus datos reales.=Demo with fictitious sample data. It is never mixed with your real data.
+pendiente=pending
+en progreso=in progress
+completada=completed
+vencida=overdue
+Sin materia=No subject
+Nota:=Note:
+Clase:=Class:
+Entrega:=Due:
+Estudio=Study
+Personal=Personal
+Hola=Hello
+semestre=semester
+periodo=term
+años=years
+Datos de demostración.=Demo data.
+● clases · ● entregas (rojo: vencidas) · ● eventos. Las entregas se toman de tus tareas, sin duplicarlas.=● classes · ● deadlines (red: overdue) · ● events. Deadlines come from your tasks, with no duplicates.
+Tarea guardada=Task saved
+Tarea completada=Task completed
+Tarea reabierta=Task reopened
+Tarea eliminada=Task deleted
+Clase guardada=Class saved
+Clase eliminada=Class deleted
+Materia guardada=Subject saved
+Materia eliminada=Subject deleted
+Evento guardado=Event saved
+Evento eliminado=Event deleted
+Configuración guardada=Setup saved
+Demo reiniciada=Demo reset
+Datos borrados=Data deleted
+Primero crea una materia=Create a subject first
+Bloque añadido al calendario=Block added to calendar
+¿Eliminar esta tarea?=Delete this task?
+¿Eliminar este evento?=Delete this event?
+¿Eliminar esta clase del horario?=Delete this class from the schedule?
+Se eliminará la materia junto con sus clases y tareas. ¿Continuar?=The subject will be deleted with its classes and tasks. Continue?
+Se restaurarán los datos de ejemplo originales.=The original sample data will be restored.`.split('\n').map(l=>{const i=l.lastIndexOf('=');return[l.slice(0,i),l.slice(i+1)]}));
+const L=s=>ui.lang=='en'&&EN[s]||s;
+function tr(root){if(ui.lang!='en')return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){const t=n.nodeValue.trim();if(!t)continue;let v=EN[t];if(!v){const m=t.match(/^Paso (\d) de 4$/);if(m)v='Step '+m[1]+' of 4';else if(m=t.match(/^(\d+) vencida\(s\)$/))v=m[1]+' overdue';else if(m=t.match(/^(\d+) vence\(n\) en 48 h$/))v=m[1]+' due in 48 h';else if(m=t.match(/^(\d+) completada\(s\) hoy$/))v=m[1]+' completed today';else if(m=t.match(/^(\d+) entregas el (.+)$/))v=m[1]+' deadlines on '+m[2]}if(v)n.nodeValue=n.nodeValue.replace(t,v)}root.querySelectorAll('[placeholder]').forEach(e=>{const p=EN[e.getAttribute('placeholder')];if(p)e.placeholder=p})}
+const setLang=v=>{ui.lang=v||(ui.lang=='es'?'en':'es');sui();R()},setTheme=v=>{ui.theme=v;sui();R()},toggleTheme=()=>{const e=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');setTheme(e=='dark'?'light':'dark')};
+const tbar=()=>`<div class=tb><button class="btn2 sm" onclick="setLang()" aria-label="Language">${ui.lang=='es'?'English':'Español'}</button><button class="btn2 sm" onclick="toggleTheme()" aria-label="Theme"><svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 style="display:block"><circle cx=12 cy=12 r=9 /><path d="M12 3v18" /><path d="M12 3a9 9 0 010 18z" fill=currentColor /></svg></button></div>`;
+const ICON="data:image/png;base64,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",LOGO="data:image/png;base64,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";
+document.head.insertAdjacentHTML("beforeend",`<link rel=icon href="${ICON}">`);
+const sub=id=>S.subjects.find(x=>x.id==id),col=id=>COL[Math.max(0,S.subjects.findIndex(x=>x.id==id))%8];
+function toast(m){const t=$('#toast');t.textContent=ui.lang=='en'&&EN[m]||m;t.className='on';clearTimeout(toast.t);toast.t=setTimeout(()=>t.className='',2200)}
+// ---- Programas (fuente: listado adjunto; la facultad no viene asociada a cada programa, por eso no se completa) ----
+const MOD={P:'Presencial',V:'Virtual'},RAW={'Pregrado':`Administración de Empresas|P|90578|9
+Administración de Servicios de Salud|P|102046|9
+Mercadeo y Publicidad|P|109132|9
+Profesional en Negocios y Logística Internacional|P|116666|8
+Administración de Empresas|V|101415|9
+Administración en Salud|V|109514|8
+Mercadeo y Publicidad|V|109132|9
+Administración Financiera|V|110685|8
+Contaduría Pública|V|109516|9
+Finanzas y Negocios Internacionales|P||8
+Finanzas y Negocios Internacionales|V|109515|8
+Profesional en Negocios y Logística Internacional|V|116666|8
+Ingeniería de Telecomunicaciones|P|90623|10
+Ingeniería de Sistemas|P|90598|10
+Ingeniería Industrial|P|109552|10
+Ingeniería Multimedia|P|110840|10
+Ciencia de Datos|P|111015|9
+Ingeniería de Software|P|109130|10
+Ingeniería Biomédica|P|117835|8
+Ingeniería de Sistemas|V|101742|10
+Ciencia de Datos|V|110692|9
+Ingeniería de Software|V|109339|10
+Ingeniería en Tecnologías de la Información y las Comunicaciones|V|117911|8
+Ingeniería Industrial|V|109552|10
+Profesional en Deporte y Actividad Física|P|111281|8
+Licenciatura en Educación Infantil|P|106780|9
+Comunicación Social|P|108957|9
+Diseño Visual|P|91160|9
+Profesional en Lenguas|P|111092|9
+Psicología|P|118244|9
+Diseño Visual|V|101449|9
+Profesional en Lenguas|V|111092|9`,'Posgrado':`Contabilidad y Auditoría en Entornos Digitales|V|111229|2
+Seguridad y Salud en el Trabajo|V|111455|2
+Inteligencia y Prospectiva de Negocios|V|111691|2
+Finanzas|V|111667|2
+Gerencia para el Desarrollo del Talento|V|116788|2
+Experiencia y Servicio al Cliente|V|116497|2
+Calidad y Auditoria en Salud|V|117612|2
+Seguridad y Salud en el Trabajo|P|111455|2
+Inteligencia y Prospectiva de Negocios|P|111689|2
+Finanzas|P|111667|2
+Seguridad Informática|P|110686|2
+Big Data|P|111455|2
+Big Data|V|111188|2
+Gerencia de la Comunicación Estratégica|V|110369|2`,'Técnico laboral':`Asistencia en Primera Infancia|P||3
+Auxiliar en Cocina|P||3
+Asistencia en Instalación, Mantenimiento y Soporte de Hardware y Software|P||2
+Auxiliar Administrativo|P||3
+Auxiliar Contable y Financiero|P||3
+Asistencia y Soporte de Calidad en Software|P||2
+Operación de la Producción Gráfica|P||2
+Operación de Equipos y Herramientas para Contenidos Digitales|P||2
+Actividad Física y Recreación|P||2
+Salvamento y Rescate Acuático|P||1
+Auxiliar en Servicios Farmacéuticos|P||3`};
+const PRE={'Posgrado':'Especialización en ','Técnico laboral':'Técnico Laboral en '};
+const PROGS=Object.entries(RAW).flatMap(([lv,t])=>t.split('\n').map(l=>{const[n,m,s,d]=l.split('|');return{lv,name:(PRE[lv]||'')+n,mod:MOD[m],snies:s,sem:+d||0}}));
+// ---- Prioridad (lógica explícita y explicada) ----
+function prio(t){if(t.status=='completada')return{cat:'Completada',lv:-1,why:[]};const h=(new Date(t.due)-Date.now())/36e5,w=[];let s=0;
+if(h<0){s+=4;w.push('Vencida')}else if(h<24){s+=3;w.push('Vence en menos de 24 h')}else if(h<72){s+=2;w.push('Vence en menos de 3 días')}else if(h<168){s+=1;w.push('Vence esta semana')}
+if(t.urg>1){s+=t.urg-1;w.push('Urgencia '+(t.urg==3?'alta':'media'))}if(t.imp>1){s+=t.imp-1;w.push('Importancia '+(t.imp==3?'alta':'media'))}
+if(t.est>=4&&h<168){s+=1;w.push('Requiere '+t.est+' h de trabajo')}
+const p=t.subs.length?t.subs.filter(x=>x.d).length/t.subs.length:0;if(p>=.5){s-=1;w.push('Más de la mitad avanzada')}
+const lv=h<0||s>=7?3:s>=5?2:s>=3?1:0;return{cat:['Baja prioridad','Prioridad normal','Alta prioridad','Urgente'][lv],lv,why:w.length?w:['Sin factores de urgencia'],s}}
+const tagp=p=>p.lv<0?'<span class=tag>Completada</span>':`<span class="tag p${p.lv}">${p.cat}</span>`;
+// ---- Horario ----
+const overl=(a,b)=>a.day==b.day&&a.id!=b.id&&tm(a.start)<tm(b.end)&&tm(b.start)<tm(a.end);
+const confl=c=>S.classes.filter(x=>overl(c,x));
+// ---- Datos demo ----
+function seed(){const s=blank(),mk=n=>({id:uid(),name:n[0],teacher:n[1],credits:n[2],notes:''});s.profile={name:'Invitado',age:'',program:'Ingeniería de Software (ejemplo)',sem:5,period:'Demo',onboarded:true,demo:true};
+s.subjects=[['Bases de Datos','Prof. Ejemplo A',3],['Cálculo Integral','Prof. Ejemplo B',3],['Redes','Prof. Ejemplo C',2],['Inglés','',2]].map(mk);const[a,b,c,d]=s.subjects.map(x=>x.id);
+[[a,1,'07:00','09:00','Sala 201'],[a,3,'07:00','09:00','Sala 201'],[b,2,'09:00','11:00','Aula 105'],[b,4,'09:00','11:00','Aula 105'],[c,5,'14:00','16:00','Virtual'],[d,6,'08:00','10:00','']].forEach(x=>s.classes.push({id:uid(),sid:x[0],day:x[1],start:x[2],end:x[3],room:x[4],notes:''}));
+const dt=(h)=>{const d=new Date(Date.now()+h*36e5);d.setMinutes(0);return iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':00'};
+const T=(t,sid,h,u,i,e,st,subs)=>({id:uid(),title:t,desc:'Tarea de ejemplo',sid,due:dt(h),urg:u,imp:i,est:e,status:st,subs:subs.map(x=>({t:x,d:false})),notes:'',doneAt:st=='completada'?Date.now()-864e5:null});
+s.tasks=[T('Modelo entidad-relación',a,20,3,3,5,'en progreso',['Identificar entidades','Dibujar diagrama']),T('Taller de integrales',b,60,2,2,3,'pendiente',[]),T('Informe de laboratorio',c,200,1,2,2,'pendiente',[]),T('Ensayo de inglés',d,-30,2,1,1,'pendiente',[]),T('Lectura capítulo 2',a,-100,1,1,1,'completada',[])];
+s.events=[{id:uid(),title:'Parcial de Cálculo (ejemplo)',date:iso(Date.now()+4*864e5),start:'',end:'',type:'examen'}];return s}
+function load(){S=ls.get(key(),null);if(!S&&sess.mode=='guest'){S=seed();save()}if(!S){S=blank();S.profile.email=sess.email;save()}}
+// ---- Utilidades de UI ----
+function dlg(title,body,ok,lab){const d=$('#dlg');d.innerHTML=`<form id=f><h3 style="margin-bottom:14px">${title}</h3>${body}<div class="row end"><button type=button class=btn2 onclick="$('#dlg').close()">Cancelar</button><button class=btn>${lab||'Guardar'}</button></div></form>`;
+$('#f').onsubmit=e=>{e.preventDefault();if(ok(new FormData(e.target))!==false)d.close()};d.showModal();tr(d)}
+const ask=(msg,fn)=>dlg('Confirmar',`<p>${msg}</p>`,()=>{fn()},'Eliminar');
+const opts=(arr,sel)=>arr.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
+const R=()=>{const t=ui.theme;document.documentElement.dataset.theme=t=='auto'?'':t;document.documentElement.lang=ui.lang;const a=$('#app');a.innerHTML=(sess?(S?.profile?.onboarded?shell():onb()):(scr=='login'?login():welcome()))+tbar();tr(a)};
+const mark='<div class=mark><svg width=22 height=22 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2.2><rect x=3 y=3 width=18 height=18 rx=4 /><path d="M8 12.5l3 3 5-6"/></svg>Next Task</div>';
+// ---- Bienvenida y acceso ----
+const welcome=()=>`<div class=center><div class=box>${mark}<h1 class=big>Tu vida académica, mejor organizada.</h1><p class=mut style="margin:0 0 26px">Horario, materias y entregas en un solo lugar. Para la comunidad Unicompensar.</p>
+<button class=opt onclick="enterGuest()"><span class=b>Entrar como invitado</span><br><span class=mut>Explora una demostración con datos de ejemplo. No pide correo.</span></button>
+<button class=opt onclick="scr='login';R()"><span class=b>Iniciar sesión con correo institucional</span><br><span class=mut>Usa tu correo @ucompensar.edu.co. Acceso de demostración.</span></button>
+<div class=note>Demo local: todo se guarda solo en este navegador. No hay servidores ni cuentas reales.</div><div class=row style="margin-top:18px"><img src="${ICON}" alt="" width=24><span class=mut>Hecha para la comunidad Unicompensar</span></div></div></div>`;
+const login=()=>`<div class="center lgbg"><div class=box style="position:relative;z-index:1"><div class=lgc><div class=lgcard><form id=lf novalidate><img src="${LOGO}" alt="Ucompensar" width=150 style="display:block;margin-bottom:26px"><h2 style="margin-bottom:18px;font-size:24px">Iniciar sesión</h2>
+<input class=ms id=em type=email placeholder="usuario_correo@ucompensar.edu.co" autocomplete=off autofocus value=""><div class=err id=er></div>
+<p style="margin:8px 0 0"><button type=button class=lnk style="color:#0b57d0;text-decoration:none;font-size:13px" onclick="$('#er').textContent=ui.lang=='en'?'Demo: there are no accounts to recover. You can continue as guest.':'Demo: no hay cuentas que recuperar. Puedes entrar como invitado.'">¿No puede acceder a su cuenta?</button></p>
+<div class=row style="margin-top:16px"><button type=button class=lnk onclick="scr='welcome';R()">Volver</button><span class=sp></span><button class=btn>Siguiente</button></div></form>
+<div class=lgf>Acceso de demostración: solo se comprueba que el correo termine en @ucompensar.edu.co. No se verifica tu identidad institucional ni se pide contraseña.</div></div>
+<button class=lgo onclick="enterGuest()"><img src="${ICON}" alt="" width=26>Entrar como invitado</button></div></div></div>`;
+document.addEventListener('submit',e=>{if(e.target.id!='lf')return;e.preventDefault();const v=$('#em').value.trim().toLowerCase();
+const ok=/^[a-z0-9][a-z0-9._%+\-]*@ucompensar\.edu\.co$/.test(v);if(!ok){$('#er').textContent=!v?'Escribe tu correo institucional.':!v.includes('@')?'Falta el signo @ en el correo.':v.endsWith('@ucompensar.edu.co')?'El nombre de usuario del correo no es válido.':'Solo se aceptan correos terminados exactamente en @ucompensar.edu.co.';return}
+sess={mode:'user',email:v};ls.set(KS,sess);load();step=0;view='inicio';R()});
+function enterGuest(){sess={mode:'guest'};ls.set(KS,sess);load();view='inicio';R()}
+function logout(){sess=null;S=null;ls.del(KS);scr='welcome';R()}
+// ---- Configuración inicial ----
+function onb(){const p=S.profile,bar=`<div class=prog>${[0,1,2,3].map(i=>`<i class="${i<=step?'on':''}"></i>`).join('')}</div><p class=mut>Paso ${step+1} de 4</p>`;let h='';
+if(step==0)h=`<h2>Información básica</h2><p class=mut>Solo lo necesario.</p><label>Nombre para mostrar<input id=nm value="${esc(p.name||'')}" maxlength=40></label><label>Edad (opcional)<input id=ag type=number min=14 max=99 value="${esc(p.age||'')}"></label>${sess.email?`<label>Correo institucional<input value="${esc(sess.email)}" disabled></label>`:''}<div class=err id=er></div>`;
+if(step==1){const l=progList();h=`<h2>Programa académico</h2><div class=filt style="grid-template-columns:2fr 1fr 1fr"><input placeholder="Buscar por nombre…" value="${esc(pf.q)}" oninput="pf.q=this.value;pl()"><select onchange="pf.lv=this.value;pl()"><option value="">Nivel: todos</option>${opts([...Object.keys(RAW)].map(x=>[x,x]),pf.lv)}</select><select onchange="pf.md=this.value;pl()"><option value="">Modalidad: todas</option>${opts([['Presencial','Presencial'],['Virtual','Virtual']],pf.md)}</select></div><div class=pl id=pl>${l}</div><p class=mut>Elige el programa que realmente cursas. La facultad no está asociada a cada programa en el listado base.</p><div class=err id=er></div>`}
+if(step==2){const n=p.maxSem||12;h=`<h2>Semestre y periodo</h2><label>Semestre que cursas<select id=sm>${Array.from({length:n},(_,i)=>`<option ${p.sem==i+1?'selected':''}>${i+1}</option>`).join('')}</select></label>${p.maxSem?'':'<p class=mut>Este programa no tiene duración registrada; puedes elegir hasta 12.</p>'}<label>Periodo académico actual<input id=pr value="${esc(p.period||'2026-2')}" maxlength=10></label>`}
+if(step==3)h=`<h2>Tu horario</h2><p class=mut>Añade tus clases. Puedes omitir esto y hacerlo luego.</p><div class=row style="margin-bottom:12px"><button class="btn sm" onclick="clsForm()">Añadir clase</button></div>${clsList()}`;
+return `<div class=center><div class="box w">${mark}${bar}${h}<div class="row end">${step?'<button class=btn2 onclick="back()">Atrás</button>':''}<button class=btn onclick="next()">${step==3?'Finalizar':'Continuar'}</button></div></div></div>`}
+function progList(){const q=pf.q.toLowerCase(),a=PROGS.map((x,i)=>[x,i]).filter(([x])=>x.name.toLowerCase().includes(q)&&(!pf.lv||x.lv==pf.lv)&&(!pf.md||x.mod==pf.md));
+return a.map(([x,i])=>`<div class="pi ${S.profile.pi===i?'sel':''}" onclick="S.profile.pi=${i};pl()" role=button tabindex=0><div class=sp><div>${esc(x.name)}</div><div class=mut>${x.lv} · ${x.mod}${x.snies?' · SNIES '+x.snies:''}${x.sem?' · '+x.sem+(x.sem==1?' semestre':' semestres'):''}</div></div></div>`).join('')||'<p class=mut style="padding:12px">Sin resultados.</p>'}
+const pl=()=>{$('#pl').innerHTML=progList()};
+function next(){const p=S.profile;if(step==0){const n=$('#nm').value.trim();if(n.length<2){$('#er').textContent='Escribe un nombre de al menos 2 caracteres.';return}p.name=n;p.age=$('#ag').value;if(sess.email)p.email=sess.email}
+if(step==1){if(p.pi==null){$('#er').textContent='Selecciona un programa.';return}const x=PROGS[p.pi];p.program=x.name;p.level=x.lv;p.mod=x.mod;p.snies=x.snies;p.maxSem=x.sem}
+if(step==2){p.sem=+$('#sm').value;p.period=$('#pr').value.trim()||'2026-2'}
+if(step==3){p.onboarded=true;save();view='inicio';toast('Configuración guardada');return R()}save();step++;R()}
+const back=()=>{step--;R()};
+// ---- Clases ----
+function clsList(){if(!S.classes.length)return'<div class=card><span class=mut>Aún no hay clases. Pulsa «Añadir clase».</span></div>';
+return[...S.classes].sort((a,b)=>a.day-b.day||tm(a.start)-tm(b.start)).map(c=>{const s=sub(c.sid)||{};return`<div class="card row" style="padding:10px 14px;margin-bottom:8px"><span class=dot style="background:${col(c.sid)};width:10px;height:10px"></span><div class=sp><span class=b>${esc(s.name)}</span> <span class=mut>${DAYS[c.day]} ${c.start}–${c.end}${c.room?' · '+esc(c.room):''}</span>${confl(c).length?'<span class="tag bad">Cruce</span>':''}</div><button class="btn2 sm" onclick="clsForm('${c.id}')">Editar</button><button class="btn2 sm" onclick="clsDel('${c.id}')">Eliminar</button></div>`}).join('')}
+function clsForm(id){const c=S.classes.find(x=>x.id==id),s=c?sub(c.sid):{};dlg(c?'Editar clase':'Añadir clase',
+`<label>Asignatura<input name=name required list=sl value="${esc(s.name||'')}"></label><datalist id=sl>${S.subjects.map(x=>`<option value="${esc(x.name)}">`).join('')}</datalist>
+<label>Profesor (opcional)<input name=teacher value="${esc(s.teacher||'')}"></label><div class=lb>Días</div><div class=chips>${D6.map(d=>`<label class=chk><input type=checkbox name=day value=${d} ${c&&c.day==d?'checked':''}>${DAYS[d].slice(0,3)}</label>`).join('')}</div>
+<div class=two><label>Hora de inicio<input type=time name=start required value="${c?c.start:'07:00'}"></label><label>Hora de fin<input type=time name=end required value="${c?c.end:'09:00'}"></label></div>
+<label>Salón, sede o enlace (opcional)<input name=room value="${esc(c?.room||'')}"></label><div class=two><label>Créditos (opcional)<input type=number name=cr min=0 max=20 value="${esc(s.credits||'')}"></label><label>Notas (opcional)<input name=notes value="${esc(c?.notes||'')}"></label></div><div class=err id=fe></div>`,f=>{
+const days=f.getAll('day'),n=f.get('name').trim(),st=f.get('start'),en=f.get('end'),e=m=>{$('#fe').textContent=m;return false};
+if(!n)return e('Escribe el nombre de la asignatura.');if(!days.length)return e('Selecciona al menos un día.');if(tm(en)<=tm(st))return e('La hora de fin debe ser posterior a la de inicio.');
+let s=S.subjects.find(x=>x.name.toLowerCase()==n.toLowerCase());if(!s){s={id:uid(),name:n,notes:''};S.subjects.push(s)}s.teacher=f.get('teacher').trim();s.credits=f.get('cr');
+if(c)S.classes=S.classes.filter(x=>x.id!=id);const ne=days.map(d=>({id:uid(),sid:s.id,day:+d,start:st,end:en,room:f.get('room').trim(),notes:f.get('notes').trim()}));S.classes.push(...ne);
+const cf=ne.filter(x=>confl(x).length).length;save();R();toast(cf?'Guardada con cruce de horario (marcado en rojo)':'Clase guardada')})}
+const clsDel=id=>ask('¿Eliminar esta clase del horario?',()=>{S.classes=S.classes.filter(x=>x.id!=id);save();R();toast('Clase eliminada')});
+function grid(){const rh=40,H0=6,H1=22,n=H1-H0,cs=S.classes;
+const lab=Array.from({length:n},(_,i)=>`<div>${hm((H0+i)*60)}</div>`).join('');
+const cols=D6.map(d=>`<div class=dc style="height:${n*rh}px">${cs.filter(c=>c.day==d).map(c=>{const g=cs.filter(x=>x.day==d&&(x.id==c.id||overl(c,x))).sort((a,b)=>a.id<b.id?-1:1),i=g.findIndex(x=>x.id==c.id),w=100/g.length,s=sub(c.sid)||{},top=Math.max(0,(tm(c.start)-H0*60))/60*rh,h=Math.max(18,(tm(c.end)-tm(c.start))/60*rh-2);
+return`<button class="blk ${confl(c).length?'cf':''}" style="top:${top}px;height:${h}px;left:calc(${i*w}% + 1px);width:calc(${w}% - 2px);background:${col(c.sid)}" onclick="clsForm('${c.id}')"><b>${esc(s.name)}</b><br>${c.start}–${c.end}${c.room?'<br>'+esc(c.room):''}</button>`}).join('')}</div>`).join('');
+return`<div class=gw><div class=gr><div class=tc></div>${D6.map(d=>`<div class=gh>${DAYS[d]}</div>`).join('')}</div><div class=gr><div class=tc>${lab}</div>${cols}</div></div>`}
+// ---- Shell ----
+const IC={inicio:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',horario:'<rect x=3 y=4 width=18 height=17 rx=2 /><path d="M3 9h18M8 2v4M16 2v4"/>',materias:'<path d="M4 4h12a4 4 0 014 4v12H8a4 4 0 01-4-4V4z"/>',tareas:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/>',calendario:'<rect x=3 y=4 width=18 height=17 rx=2 /><path d="M3 9h18M8 14h2M14 14h2"/>',stats:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',perfil:'<circle cx=12 cy=8 r=4 /><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'};
+const NAV=[['inicio','Inicio'],['horario','Mi horario'],['materias','Materias'],['tareas','Tareas'],['calendario','Calendario'],['stats','Estadísticas'],['perfil','Perfil']];
+function shell(){const v={inicio,horario,materias,tareas,calendario,stats,perfil}[view]();return`<div class=app><nav class=sb><div class="mark lg" style="margin:4px 8px 18px">Next Task</div>${NAV.map(([k,t])=>`<button class="${view==k?'on':''}" onclick="go('${k}')"><svg viewBox="0 0 24 24">${IC[k]}</svg>${k=='horario'?'Horario':k=='stats'?'Stats':t}</button>`).join('')}</nav><main>${S.profile.demo?'<div class=ban>Demostración con datos ficticios de ejemplo. No se mezclan con tus datos reales.</div>':''}${v}</main></div>`}
+const go=v=>{view=v;R();scrollTo(0,0)};
+// ---- Inicio ----
+function inicio(){const now=new Date(),dy=now.getDay(),today=S.classes.filter(c=>c.day==dy).sort((a,b)=>tm(a.start)-tm(b.start)),pend=S.tasks.filter(t=>t.status!='completada'),
+top=[...pend].sort((a,b)=>prio(b).lv-prio(a).lv||new Date(a.due)-new Date(b.due)),nx=[...pend].filter(t=>new Date(t.due)>now).sort((a,b)=>new Date(a.due)-new Date(b.due))[0],hrs=pend.reduce((s,t)=>s+(+t.est||0),0);
+const al=[],ov=pend.filter(t=>new Date(t.due)<now),soon=pend.filter(t=>{const h=(new Date(t.due)-now)/36e5;return h>=0&&h<48});if(ov.length)al.push(`<span class="tag bad">${ov.length} vencida(s)</span>`);if(soon.length)al.push(`<span class="tag p2">${soon.length} vence(n) en 48 h</span>`);
+const cnt={};pend.forEach(t=>{const d=t.due.slice(0,10);cnt[d]=(cnt[d]||0)+1});Object.entries(cnt).filter(([d,n])=>n>=3&&d>=iso(now)).forEach(([d,n])=>al.push(`<span class="tag p2">${n} entregas el ${fday(d)}</span>`));
+const dn=S.tasks.filter(t=>t.doneAt&&iso(t.doneAt)==iso(now)).length;if(dn)al.push(`<span class=tag>${dn} completada(s) hoy</span>`);
+return`<div class=hd><h2>${L('Hola')}, ${esc(S.profile.name)}</h2></div><p class=mut style="margin-top:-10px">${fday(iso(now))} · ${esc(S.profile.program||'')} · ${L('semestre')} ${S.profile.sem||'–'}</p>
+${al.length?`<div style="margin-bottom:14px">${al.join('')}</div>`:''}
+<div class=stats><div class=card><b>${today.length}</b><span class=mut>clases hoy</span></div><div class=card><b>${pend.length}</b><span class=mut>tareas pendientes</span></div><div class=card><b>${hrs} h</b><span class=mut>trabajo pendiente</span></div><div class=card><b style="font-size:16px">${nx?esc(nx.title):'—'}</b><span class=mut>${nx?'Próxima: '+fd(nx.due):'Sin próximas entregas'}</span></div></div>
+<div class=card><h3 style="margin-bottom:8px">Clases de hoy</h3>${today.map(c=>`<div>${c.start}–${c.end} <span class=b>${esc(sub(c.sid)?.name)}</span> <span class=mut>${esc(c.room||'')}</span></div>`).join('')||'<span class=mut>No tienes clases hoy.</span>'}</div>
+<div class=card><div class=hd style="margin-bottom:6px"><h3 class=sp>Tareas por prioridad</h3><button class="btn sm" onclick="taskForm()">Nueva tarea</button></div>${top.slice(0,5).map(taskRow).join('')||'<span class=mut>Sin tareas pendientes. Crea una para empezar.</span>'}</div>${planner()}`}
+// ---- Planificador ----
+function suggest(){const out=[],now=new Date(),used=[],pend=S.tasks.filter(t=>t.status!='completada'&&!S.dismissed.includes(t.id)&&!S.events.some(e=>e.tid==t.id)).sort((a,b)=>prio(b).lv-prio(a).lv||new Date(a.due)-new Date(b.due)).slice(0,4);
+const busy=(ds,dy,s,e)=>S.classes.some(c=>c.day==dy&&s<tm(c.end)&&e>tm(c.start))||S.events.some(v=>v.date==ds&&v.start&&v.end&&s<tm(v.end)&&e>tm(v.start))||used.some(u=>u.date==ds&&s<u.e&&e>u.s);
+for(const t of pend){const len=Math.max(1,Math.min(2,Math.ceil(+t.est||1)))*60;let f=null;
+for(let i=0;i<7&&!f;i++){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i),ds=iso(d);if(d>new Date(t.due))break;
+for(let s=8*60;s+len<=21*60;s+=30){if(i==0&&s<=now.getHours()*60+now.getMinutes()+30)continue;if(i==0||true){const end=s+len;if(new Date(ds+'T'+hm(end))>new Date(t.due))break;if(!busy(ds,d.getDay(),s,end)){f={date:ds,s,e:end};break}}}}
+if(f){used.push(f);out.push({tid:t.id,title:t.title,date:f.date,start:hm(f.s),end:hm(f.e)})}}return out}
+function planner(){const sg=suggest();return`<div class=card><h3 style="margin-bottom:4px">Planificador de estudio</h3><p class=mut style="margin-top:0">${sg.length?'Bloques libres propuestos según tus clases, eventos y fechas de entrega.':'Sugerencias generales (no basadas en tus datos): registra clases y tareas con tiempo estimado para obtener bloques personalizados. Divide trabajos grandes en subtareas y reserva bloques de 1–2 horas.'}</p>
+${sg.map(s=>`<div class="row" style="margin-bottom:6px"><div class=sp><span class=b>${esc(s.title)}</span><br><span class=mut>${fday(s.date)} · ${s.start}–${s.end}</span></div><button class="btn sm" onclick="sgOk('${s.tid}','${s.date}','${s.start}','${s.end}',0)">Aceptar</button><button class="btn2 sm" onclick="sgOk('${s.tid}','${s.date}','${s.start}','${s.end}',1)">Modificar</button><button class="btn2 sm" onclick="sgNo('${s.tid}')">Descartar</button></div>`).join('')}</div>`}
+function sgOk(tid,date,start,end,edit){const t=S.tasks.find(x=>x.id==tid),e={id:uid(),title:'Estudiar: '+t.title,date,start,end,type:'estudio',tid};S.events.push(e);save();R();edit?evForm(e.id):toast('Bloque añadido al calendario')}
+const sgNo=id=>{S.dismissed.push(id);save();R()};
+// ---- Horario / Materias ----
+const horario=()=>`<div class=hd><h2 class=sp>Mi horario</h2><button class=btn onclick="clsForm()">Añadir clase</button></div>${S.classes.length?grid():'<div class=card><span class=mut>Tu horario está vacío. Añade tu primera clase.</span></div>'}<h3 style="margin:20px 0 10px">Clases</h3>${clsList()}`;
+function materias(){const cr=S.subjects.reduce((s,x)=>s+(+x.credits||0),0);return`<div class=hd><h2 class=sp>Materias</h2><button class=btn onclick="subForm()">Nueva materia</button></div>${cr?`<p class=mut style="margin-top:-8px">${cr} créditos registrados</p>`:''}
+${S.subjects.map(s=>{const ts=S.tasks.filter(t=>t.sid==s.id),dn=ts.filter(t=>t.status=='completada').length,cl=S.classes.filter(c=>c.sid==s.id);
+return`<div class=card><div class=row><span class=dot style="background:${col(s.id)};width:12px;height:12px"></span><h3 class=sp>${esc(s.name)}</h3><button class="btn2 sm" onclick="subForm('${s.id}')">Editar</button><button class="btn2 sm" onclick="subDel('${s.id}')">Eliminar</button></div>
+<p class=mut style="margin:6px 0">${s.teacher?esc(s.teacher)+' · ':''}${s.credits?s.credits+' créditos · ':''}${ts.length-dn} pendientes · ${dn} completadas</p><div>${cl.map(c=>`<span class=tag>${DAYS[c.day].slice(0,3)} ${c.start}–${c.end}</span>`).join('')||'<span class=mut>Sin horarios.</span>'}</div>${s.notes?`<p style="margin:8px 0 0">${esc(s.notes)}</p>`:''}</div>`}).join('')||'<div class=card><span class=mut>No hay materias. Crea una o añade clases al horario.</span></div>'}`}
+function subForm(id){const s=S.subjects.find(x=>x.id==id)||{};dlg(id?'Editar materia':'Nueva materia',`<label>Nombre<input name=name required value="${esc(s.name||'')}"></label><label>Profesor (opcional)<input name=teacher value="${esc(s.teacher||'')}"></label><label>Créditos (opcional)<input type=number name=cr min=0 max=20 value="${esc(s.credits||'')}"></label><label>Notas personales<textarea name=notes rows=3>${esc(s.notes||'')}</textarea></label>`,f=>{
+const n=f.get('name').trim();if(!n)return false;if(S.subjects.some(x=>x.id!=id&&x.name.toLowerCase()==n.toLowerCase())){toast('Ya existe una materia con ese nombre');return false}
+if(s.id)Object.assign(s,{name:n,teacher:f.get('teacher').trim(),credits:f.get('cr'),notes:f.get('notes')});else S.subjects.push({id:uid(),name:n,teacher:f.get('teacher').trim(),credits:f.get('cr'),notes:f.get('notes')});save();R();toast('Materia guardada')})}
+const subDel=id=>ask('Se eliminará la materia junto con sus clases y tareas. ¿Continuar?',()=>{S.subjects=S.subjects.filter(x=>x.id!=id);S.classes=S.classes.filter(x=>x.sid!=id);S.tasks=S.tasks.filter(x=>x.sid!=id);save();R();toast('Materia eliminada')});
+// ---- Tareas ----
+function taskRow(t){const p=prio(t),s=sub(t.sid)||{},late=t.status!='completada'&&new Date(t.due)<new Date();
+return`<div class="card ${t.status=='completada'?'done':''}" style="margin-bottom:8px"><div class=tk><input type=checkbox ${t.status=='completada'?'checked':''} onchange="tg('${t.id}')" aria-label="Completar"><div class=sp><div class=tt><span class=b>${esc(t.title)}</span></div>
+<div class=mut>${esc(s.name||L('Sin materia'))} · ${late?'<span style="color:var(--bad)">'+L('vencida')+'</span> · ':''}${fd(t.due)} · ${t.est||0} h · ${L(t.status)}</div><div>${tagp(p)}${p.why.map(w=>`<span class=tag>${w}</span>`).join('')}</div>${t.desc?`<div class=mut style="margin-top:4px">${esc(t.desc)}</div>`:''}</div>
+<div class=row style="flex:none"><button class="btn2 sm" onclick="taskForm('${t.id}')">Editar</button><button class="btn2 sm" onclick="taskDel('${t.id}')">Eliminar</button></div></div>
+${t.subs.length?`<div class=sub>${t.subs.map((x,i)=>`<label><input type=checkbox ${x.d?'checked':''} onchange="ts('${t.id}',${i})">${esc(x.t)}</label>`).join('')}</div>`:''}${t.notes?`<div class=mut style="margin:6px 0 0 30px">${L('Nota:')} ${esc(t.notes)}</div>`:''}</div>`}
+function tlist(){let a=S.tasks.filter(t=>(!tf.q||(t.title+t.desc).toLowerCase().includes(tf.q.toLowerCase()))&&(!tf.st||t.status==tf.st)&&(!tf.sid||t.sid==tf.sid));
+const sorts={prio:(x,y)=>prio(y).lv-prio(x).lv||new Date(x.due)-new Date(y.due),due:(x,y)=>new Date(x.due)-new Date(y.due),urg:(x,y)=>y.urg-x.urg,imp:(x,y)=>y.imp-x.imp,sid:(x,y)=>(sub(x.sid)?.name||'').localeCompare(sub(y.sid)?.name||''),st:(x,y)=>x.status.localeCompare(y.status)};
+return a.sort(sorts[tf.sort]).map(taskRow).join('')||`<div class=card><span class=mut>${S.tasks.length?'Ningún resultado con estos filtros.':'Aún no tienes tareas. Crea la primera con «Nueva tarea».'}</span></div>`}
+const tl=()=>{$('#tl').innerHTML=tlist()};
+const tareas=()=>`<div class=hd><h2 class=sp>Tareas</h2><button class=btn onclick="taskForm()">Nueva tarea</button></div><div class=filt><input placeholder="Buscar…" value="${esc(tf.q)}" oninput="tf.q=this.value;tl()"><select onchange="tf.st=this.value;tl()"><option value="">Estado: todos</option>${opts([['pendiente','Pendiente'],['en progreso','En progreso'],['completada','Completada']],tf.st)}</select><select onchange="tf.sid=this.value;tl()"><option value="">Materia: todas</option>${opts(S.subjects.map(s=>[s.id,s.name]),tf.sid)}</select><select onchange="tf.sort=this.value;tl()">${opts([['prio','Orden: prioridad'],['due','Fecha de entrega'],['urg','Urgencia'],['imp','Importancia'],['sid','Materia'],['st','Estado']],tf.sort)}</select></div><div id=tl>${tlist()}</div>`;
+function taskForm(id){if(!S.subjects.length){toast('Primero crea una materia');return subForm()}const t=S.tasks.find(x=>x.id==id)||{},L=[[1,'Baja'],[2,'Media'],[3,'Alta']],d=new Date(Date.now()+864e5);d.setHours(23,59);
+dlg(id?'Editar tarea':'Nueva tarea',`<label>Título<input name=title required value="${esc(t.title||'')}"></label><label>Descripción<textarea name=desc rows=2>${esc(t.desc||'')}</textarea></label>
+<div class=two><label>Materia<select name=sid>${opts(S.subjects.map(s=>[s.id,s.name]),t.sid)}</select></label><label>Entrega<input type=datetime-local name=due required value="${t.due||iso(d)+'T23:59'}"></label></div>
+<div class=two><label>Urgencia<select name=urg>${opts(L,t.urg||2)}</select></label><label>Importancia<select name=imp>${opts(L,t.imp||2)}</select></label></div>
+<div class=two><label>Tiempo estimado (horas)<input type=number name=est min=0 max=100 step=.5 value="${t.est??1}"></label><label>Estado<select name=st>${opts([['pendiente','Pendiente'],['en progreso','En progreso'],['completada','Completada']],t.status||'pendiente')}</select></label></div>
+<label>Subtareas (una por línea)<textarea name=subs rows=3>${esc((t.subs||[]).map(x=>x.t).join('\n'))}</textarea></label><label>Notas personales<input name=notes value="${esc(t.notes||'')}"></label>`,f=>{
+const title=f.get('title').trim();if(!title||!f.get('due'))return false;const old=t.subs||[],subs=f.get('subs').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>({t:x,d:!!old.find(o=>o.t==x&&o.d)})),st=f.get('st');
+const o={title,desc:f.get('desc').trim(),sid:f.get('sid'),due:f.get('due'),urg:+f.get('urg'),imp:+f.get('imp'),est:+f.get('est')||0,status:st,subs,notes:f.get('notes').trim(),doneAt:st=='completada'?(t.doneAt||Date.now()):null};
+if(t.id)Object.assign(t,o);else S.tasks.push({id:uid(),...o});save();R();toast('Tarea guardada')})}
+const tg=id=>{const t=S.tasks.find(x=>x.id==id);if(t.status=='completada'){t.status='pendiente';t.doneAt=null}else{t.status='completada';t.doneAt=Date.now()}save();R();toast(t.status=='completada'?'Tarea completada':'Tarea reabierta')};
+const ts=(id,i)=>{const t=S.tasks.find(x=>x.id==id);t.subs[i].d=!t.subs[i].d;save();R()};
+const taskDel=id=>ask('¿Eliminar esta tarea?',()=>{S.tasks=S.tasks.filter(x=>x.id!=id);S.events=S.events.filter(e=>e.tid!=id);save();R();toast('Tarea eliminada')});
+// ---- Calendario ----
+function dayItems(ds){const dy=new Date(ds+'T00:00').getDay(),a=[];S.classes.filter(c=>c.day==dy).forEach(c=>a.push({k:'c',t:c.start,x:`${c.start}–${c.end} ${L('Clase:')} ${esc(sub(c.sid)?.name)}`}));
+S.tasks.filter(t=>t.due.slice(0,10)==ds).forEach(t=>a.push({k:t.status!='completada'&&new Date(t.due)<new Date()?'a':'t',t:t.due.slice(11),x:`${t.due.slice(11)} ${L('Entrega:')} ${esc(t.title)} <span class=mut>(${L(t.status)})</span>`}));
+S.events.filter(e=>e.date==ds).forEach(e=>a.push({k:'e',t:e.start||'00:00',x:`${e.start?e.start+(e.end?'–'+e.end:'')+' ':''}${L(e.type[0].toUpperCase()+e.type.slice(1))}: ${esc(e.title)} <button class="btn2 sm" onclick="evForm('${e.id}')">Editar</button> <button class="btn2 sm" onclick="evDel('${e.id}')">Eliminar</button>`}));return a.sort((x,y)=>x.t.localeCompare(y.t))}
+function calendario(){const y=calM.getFullYear(),m=calM.getMonth(),first=new Date(y,m,1),off=(first.getDay()+6)%7,n=new Date(y,m+1,0).getDate();let c='';(ui.lang=='en'?['M','T','W','T','F','S','S']:['L','M','X','J','V','S','D']).forEach(d=>c+=`<div class=h>${d}</div>`);
+for(let i=0;i<off;i++)c+='<div class=o></div>';for(let d=1;d<=n;d++){const ds=iso(new Date(y,m,d)),it=dayItems(ds).filter(i=>i.k!='c'),cl=new Date(y,m,d).getDay()!=0&&S.classes.some(x=>x.day==new Date(y,m,d).getDay());
+c+=`<div class="${ds==iso(new Date())?'t':''} ${ds==calSel?'s':''}" onclick="calSel='${ds}';R()">${d}<br>${cl?'<span class="dot c"></span>':''}${it.slice(0,4).map(i=>`<span class="dot ${i.k=='a'?'a':''}"></span>`).join('')}</div>`}
+return`<div class=hd><h2 class=sp>${first.toLocaleDateString(LOC(),{month:'long',year:'numeric'})}</h2><button class=btn2 onclick="calM=new Date(calM.getFullYear(),calM.getMonth()-1,1);R()">‹</button><button class=btn2 onclick="calM=new Date();calSel=iso(calM);R()">Hoy</button><button class=btn2 onclick="calM=new Date(calM.getFullYear(),calM.getMonth()+1,1);R()">›</button></div><div class=cal>${c}</div>
+<div class=card style="margin-top:14px"><div class=hd style="margin-bottom:6px"><h3 class=sp style="text-transform:capitalize">${fday(calSel)}</h3><button class="btn sm" onclick="evForm()">Nuevo evento</button></div>${dayItems(calSel).map(i=>`<div style="padding:4px 0">${i.x}</div>`).join('')||'<span class=mut>Sin eventos este día.</span>'}</div><p class=mut>● clases · ● entregas (rojo: vencidas) · ● eventos. Las entregas se toman de tus tareas, sin duplicarlas.</p>`}
+function evForm(id){const e=S.events.find(x=>x.id==id)||{};dlg(id?'Editar evento':'Nuevo evento',`<label>Título<input name=title required value="${esc(e.title||'')}"></label><div class=two><label>Tipo<select name=type>${opts([['examen','Examen'],['presentación','Presentación'],['estudio','Bloque de estudio'],['personal','Evento personal']],e.type||'examen')}</select></label><label>Fecha<input type=date name=date required value="${e.date||calSel}"></label></div><div class=two><label>Inicio (opcional)<input type=time name=start value="${e.start||''}"></label><label>Fin (opcional)<input type=time name=end value="${e.end||''}"></label></div>`,f=>{
+const s=f.get('start'),en=f.get('end');if(s&&en&&tm(en)<=tm(s)){toast('La hora de fin debe ser posterior a la de inicio');return false}const o={title:f.get('title').trim(),type:f.get('type'),date:f.get('date'),start:s,end:en};if(!o.title)return false;
+if(e.id)Object.assign(e,o);else S.events.push({id:uid(),...o});calSel=o.date;save();R();toast('Evento guardado')})}
+const evDel=id=>ask('¿Eliminar este evento?',()=>{S.events=S.events.filter(x=>x.id!=id);save();R();toast('Evento eliminado')});
+// ---- Estadísticas ----
+function stats(){const T=S.tasks,dn=T.filter(t=>t.status=='completada').length,ov=T.filter(t=>t.status!='completada'&&new Date(t.due)<new Date()).length,pn=T.length-dn,pc=T.length?Math.round(dn/T.length*100):0;
+const mon=new Date();mon.setHours(0,0,0,0);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));const wk=[5,4,3,2,1,0].map(i=>{const a=+mon-i*7*864e5,b=a+7*864e5;return{l:new Date(a).toLocaleDateString(LOC(),{day:'numeric',month:'short'}),n:T.filter(t=>t.doneAt&&t.doneAt>=a&&t.doneAt<b).length}}),mx=Math.max(1,...wk.map(w=>w.n)),ms=Math.max(1,...S.subjects.map(s=>T.filter(t=>t.sid==s.id).length));
+if(!T.length)return'<div class=hd><h2>Estadísticas</h2></div><div class=card><span class=mut>Aún no hay tareas. Crea tareas para ver tu seguimiento.</span></div>';
+return`<div class=hd><h2>Estadísticas</h2></div><div class=stats><div class=card><b>${dn}</b><span class=mut>completadas</span></div><div class=card><b>${pn}</b><span class=mut>pendientes</span></div><div class=card><b>${ov}</b><span class=mut>vencidas</span></div><div class=card><b>${pc}%</b><span class=mut>cumplimiento</span></div></div>
+<div class=card><h3 style="margin-bottom:10px">Tareas por materia</h3>${S.subjects.map(s=>{const n=T.filter(t=>t.sid==s.id).length;return n?`<div style="margin-bottom:8px"><div class=row><span class=sp>${esc(s.name)}</span><span class=mut>${n}</span></div><div class=bar><i style="width:${n/ms*100}%;background:${col(s.id)}"></i></div></div>`:''}).join('')}</div>
+<div class=card><h3 style="margin-bottom:10px">Completadas por semana</h3>${wk.map(w=>`<div class=row style="margin-bottom:6px"><span class=mut style="width:60px">${w.l}</span><div class=bar style="flex:1"><i style="width:${w.n/mx*100}%"></i></div><span style="width:20px;text-align:right">${w.n}</span></div>`).join('')}</div>${S.profile.demo?'<p class=mut>Datos de demostración.</p>':''}`}
+// ---- Perfil ----
+function perfil(){const p=S.profile;return`<div class=hd><h2>Perfil y ajustes</h2></div><div class=card><div class=b>${esc(p.name)}</div><div class=mut>${esc(p.email||'Invitado')}${p.age?' · '+esc(p.age)+' '+L('años'):''}</div><div class=mut>${esc(p.program||'')} · ${L('semestre')} ${p.sem||'–'} · ${L('periodo')} ${esc(p.period||'')}</div>${p.demo?'':'<div class=row style="margin-top:12px"><button class="btn2 sm" onclick="S.profile.onboarded=false;step=0;R()">Editar perfil y programa</button></div>'}</div>
+<div class=card><label>Idioma<select onchange="setLang(this.value)">${opts([['es','Español'],['en','English']],ui.lang)}</select></label><label style="margin:0">Tema<select onchange="setTheme(this.value)">${opts([['auto','Automático'],['light','Claro'],['dark','Oscuro']],ui.theme)}</select></label></div>
+<div class=card><h3 style="margin-bottom:8px">Datos locales</h3><p class=mut style="margin-top:0">Se guardan solo en este navegador y no se sincronizan entre dispositivos. Acceso de demostración: no se verificó tu identidad ni son datos protegidos de una cuenta real.</p><div class=row>
+${p.demo?`<button class=btn2 onclick="ask('Se restaurarán los datos de ejemplo originales.',()=>{S=seed();save();R();toast('Demo reiniciada')})">Reiniciar demo</button>`:''}<button class=btn2 onclick="ask('Se borrarán todos los datos guardados${p.demo?' de la demo':' de este perfil'}. No se puede deshacer.',wipe)">Borrar datos guardados</button><button class=btn2 onclick="logout()">Cerrar sesión</button></div></div>`}
+function wipe(){ls.del(key());logout();toast('Datos borrados')}
+if(sess){try{load()}catch(e){sess=null}}R();
+</script></body></html>
